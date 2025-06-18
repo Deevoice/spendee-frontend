@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
 import ThemeToggle from './ThemeToggle';
-import Image from 'next/image';
 
 export default function Header() {
     const { user, logout } = useAuth();
@@ -45,13 +44,7 @@ export default function Header() {
             <div className="container">
                 <nav className="nav">
                     <Link href="/" className="logo">
-                        <Image
-                            src="/logo.png"
-                            alt="Spendy Logo"
-                            width={32}
-                            height={32}
-                            className="logo"
-                        />
+                        Spendy
                     </Link>
 
                     <div className="nav-links">
@@ -62,12 +55,10 @@ export default function Header() {
                                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                                 >
                                     {user.avatar ? (
-                                        <Image
+                                        <img
                                             src={user.avatar}
                                             alt={user.full_name || user.email}
                                             className="user-avatar-image"
-                                            width={40}
-                                            height={40}
                                             onError={(e) => {
                                                 console.error('Error loading avatar:', e);
                                                 const img = e.target as HTMLImageElement;

@@ -1,26 +1,19 @@
 import { NextResponse } from 'next/server';
+import jwt_decode from 'jwt-decode';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
-interface JwtPayload {
-    id: string;
-    email: string;
-    role: string;
-}
-
-export async function GET() {
+export async function GET(request: Request) {
     try {
-        const session = await getServerSession(authOptions);
-
-        if (!session?.user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const authHeader = request.headers.get('authorization');
+        if (!authHeader) {
+            return new NextResponse('Unauthorized', { status: 401 });
         }
-
-        const token = session.user as JwtPayload;
-
-        if (token.role !== 'ADMIN') {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        const token = authHeader.replace('Bearer ', '');
+        const decoded: any = jwt_decode(token);
+        if (decoded.role !== 'ADMIN') {
+            return new NextResponse('Unauthorized', { status: 401 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -99,19 +92,14 @@ export async function GET() {
             count: visit._count.country,
         }));
 
-        const statistics = {
+        return NextResponse.json({
             totalUsers,
             totalVisits,
             totalTransactions,
             countries,
-        };
-
-        return NextResponse.json(statistics);
+        });
     } catch (error) {
         console.error('Error fetching statistics:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+        return new NextResponse('Internal Server Error', { status: 500 });
     }
 } 

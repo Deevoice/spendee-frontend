@@ -73,15 +73,47 @@ export const getTransactions = (period: string = 'month', accountId?: number) =>
     return fetchWithAuth(url);
 };
 
-export const createTransaction = (data: any) => fetchWithAuth('/api/transactions/', {
-    method: 'POST',
-    body: JSON.stringify(data),
-});
+export const createTransaction = (data: any) => {
+    if (!data.category && data.categoryName) {
+        data.category = data.categoryName;
+    }
+    if (!data.category && data.category_id && data.categories) {
+        // Найти имя категории по id
+        const found = data.categories.find((cat: any) => cat.id === data.category_id);
+        if (found) data.category = found.name;
+    }
+    if (!data.category) {
+        throw new Error('Не указано имя категории (category) для транзакции');
+    }
+    return fetchWithAuth('/api/transactions/', {
+        method: 'POST',
+        body: JSON.stringify({
+            ...data,
+            category: data.category,
+        }),
+    });
+};
 
-export const updateTransaction = (id: number, data: any) => fetchWithAuth(`/api/transactions/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-});
+export const updateTransaction = (id: number, data: any) => {
+    if (!data.category && data.categoryName) {
+        data.category = data.categoryName;
+    }
+    if (!data.category && data.category_id && data.categories) {
+        // Найти имя категории по id
+        const found = data.categories.find((cat: any) => cat.id === data.category_id);
+        if (found) data.category = found.name;
+    }
+    if (!data.category) {
+        throw new Error('Не указано имя категории (category) для транзакции');
+    }
+    return fetchWithAuth(`/api/transactions/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            ...data,
+            category: data.category,
+        }),
+    });
+};
 
 export const deleteTransaction = (id: number) => fetchWithAuth(`/api/transactions/${id}`, {
     method: 'DELETE',
